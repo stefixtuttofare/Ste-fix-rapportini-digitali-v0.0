@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Ste-Fix</title>
+    <style>
+        /* Reset e Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: white;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            padding: 5px;
+        }
+        
+        .login-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .login-header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .login-header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .login-form {
+            padding: 40px 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c33;
+            display: none;
+        }
+
+        .success-message {
+            background: #efe;
+            color: #363;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #363;
+            display: none;
+        }
+
+        .forgot-password {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .forgot-password a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .login-container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .login-header {
+                padding: 30px 20px;
+            }
+
+            .login-form {
+                padding: 30px 20px;
+            }
+
+            .login-header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="login-logo">
+                <img src="./public/images/logo(2).png" alt="Ste-Fix Logo">
+            </div>
+            <h1>Ste-Fix</h1>
+            <p>Accedi al tuo account</p>
+        </div>
+        
+        <div class="login-form">
+            <div id="error-message" class="error-message"></div>
+            <div id="success-message" class="success-message"></div>
+            
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Nome Utente</label>
+                    <input type="text" id="username" name="username" required autocomplete="username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                </div>
+                
+                <button type="submit" class="login-btn" id="login-btn">
+                    <span class="spinner" id="spinner"></span>
+                    <span id="btn-text">Accedi</span>
+                </button>
+            </form>
+            
+            <div class="forgot-password">
+                <a href="#" onclick="showForgotPassword()">Password dimenticata?</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configurazione credenziali (in produzione usare un sistema più sicuro)
+        const VALID_CREDENTIALS = {
+            'admin': 'stefix2024',
+            'stefano': 'paderno123',
+            'ste-fix': 'webapp2024'
+        };
+
+        // Elementi DOM
+        const loginForm = document.getElementById('login-form');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('login-btn');
+        const spinner = document.getElementById('spinner');
+        const btnText = document.getElementById('btn-text');
+        const errorMessage = document.getElementById('error-message');
+        const successMessage = document.getElementById('success-message');
+
+        // Controlla se l'utente è già loggato
+        if (localStorage.getItem('stefix_logged_in') === 'true') {
+            window.location.href = 'index.html';
+        }
+
+        // Gestione del form di login
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value;
+            
+            if (!username || !password) {
+                showError('Inserisci nome utente e password');
+                return;
+            }
+            
+            // Mostra loading
+            setLoading(true);
+            hideMessages();
+            
+            // Simula una chiamata API
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Verifica credenziali
+            if (VALID_CREDENTIALS[username] && VALID_CREDENTIALS[username] === password) {
+                // Login riuscito
+                localStorage.setItem('stefix_logged_in', 'true');
+                localStorage.setItem('stefix_username', username);
+                localStorage.setItem('stefix_login_time', new Date().toISOString());
+                
+                showSuccess('Login effettuato con successo!');
+                
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+            } else {
+                // Login fallito
+                showError('Nome utente o password non corretti');
+                setLoading(false);
+            }
+        });
+
+        function setLoading(loading) {
+            if (loading) {
+                loginBtn.disabled = true;
+                spinner.style.display = 'inline-block';
+                btnText.textContent = 'Accesso in corso...';
+            } else {
+                loginBtn.disabled = false;
+                spinner.style.display = 'none';
+                btnText.textContent = 'Accedi';
+            }
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
+        }
+
+        function hideMessages() {
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+        }
+
+        function showForgotPassword() {
+            alert('Per recuperare la password, contatta l\'amministratore del sistema.');
+        }
+
+        // Auto-focus sul campo username
+        usernameInput.focus();
+
+        // Gestione Enter per passare al campo successivo
+        usernameInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                passwordInput.focus();
+            }
+        });
+    </script>
+</body>
+</html>

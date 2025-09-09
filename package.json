@@ -1,0 +1,23 @@
+{
+  "name": "ste-fix-webapp",
+  "version": "1.0.0",
+  "description": "Applicazione web per gestione rapportini e ricevute Ste-Fix",
+  "main": "index.html",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "echo 'No build step required for static site'"
+  },
+  "keywords": [
+    "rapportini",
+    "ricevute",
+    "webapp",
+    "pdf",
+    "email"
+  ],
+  "author": "Ste-Fix",
+  "license": "ISC",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

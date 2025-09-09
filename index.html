@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Ste-Fix">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Sistema di gestione rapportini digitali per interventi tecnici - Ste-Fix">
+    <title>Gestione Rapportini Digitali - Ste-Fix</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <img src="./public/images/logo(2).png" alt="Ste-Fix Logo" class="header-logo">
+                <div class="header-text">
+                    <h1>Ste-Fix Rapportini Digitali</h1>
+                    <p>Sistema di gestione rapportini per interventi tecnici</p>
+                </div>
+                <div class="user-info">
+                    <span id="current-user">Utente</span>
+                    <button type="button" class="logout-btn" onclick="logout()" title="Esci">🚪</button>
+                </div>
+            </div>
+            <nav class="main-nav">
+                <button type="button" class="nav-btn active" onclick="mostraSezione('cliente-section'); setActiveNav(this)">📋 Nuovo Rapportino</button>
+                <button type="button" class="nav-btn" onclick="mostraSezione('ricevute-section'); setActiveNav(this)">💰 Ricevute</button>
+                <button type="button" class="nav-btn" onclick="mostraSezione('archivio-section'); setActiveNav(this)">📁 Archivio</button>
+            </nav>
+        </header>
+
+        <main>
+            <!-- Sezione Dati Cliente -->
+            <section class="card" id="cliente-section">
+                <h2>📋 Dati Cliente</h2>
+                <form id="cliente-form">
+                    <div class="form-group">
+                        <label for="nome-cliente">Nome Cliente *</label>
+                        <input type="text" id="nome-cliente" name="nomeCliente" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cognome-cliente">Cognome Cliente *</label>
+                        <input type="text" id="cognome-cliente" name="cognomeCliente" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email-cliente">Email Cliente *</label>
+                        <input type="email" id="email-cliente" name="emailCliente" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono-cliente">Telefono</label>
+                        <input type="tel" id="telefono-cliente" name="telefonoCliente">
+                    </div>
+                    <div class="form-group">
+                        <label for="indirizzo-cliente">Indirizzo</label>
+                        <textarea id="indirizzo-cliente" name="indirizzoCliente" rows="3"></textarea>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="procediRapportino()">Procedi al Rapportino</button>
+                </form>
+            </section>
+
+            <!-- Sezione Rapportino -->
+            <section class="card" id="rapportino-section" style="display: none;">
+                <h2>📝 Compilazione Rapportino</h2>
+                <form id="rapportino-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="data-intervento">Data Intervento *</label>
+                            <input type="date" id="data-intervento" name="dataIntervento" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="ora-inizio">Ora Inizio *</label>
+                            <input type="time" id="ora-inizio" name="oraInizio" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="ora-fine">Ora Fine *</label>
+                            <input type="time" id="ora-fine" name="oraFine" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ore-viaggio">Ore Viaggio A/R (totale)</label>
+                            <input type="number" id="ore-viaggio" name="oreViaggio" step="0.5" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="km-percorsi">KM Percorsi A/R (totale)</label>
+                            <input type="number" id="km-percorsi" name="kmPercorsi" min="0">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="descrizione-intervento">Descrizione Intervento *</label>
+                        <textarea id="descrizione-intervento" name="descrizioneIntervento" rows="4" required placeholder="Descrivi dettagliatamente l'intervento effettuato..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="materiali-utilizzati">Materiali Utilizzati</label>
+                        <textarea id="materiali-utilizzati" name="materialiUtilizzati" rows="3" placeholder="Elenca i materiali utilizzati durante l'intervento..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="osservazioni-cliente">Osservazioni Cliente</label>
+                        <textarea id="osservazioni-cliente" name="osservazioniCliente" rows="3" placeholder="Eventuali osservazioni o richieste del cliente..."></textarea>
+                    </div>
+
+                    <button type="button" class="btn btn-primary" onclick="procediFireme()">Procedi alle Firme</button>
+                </form>
+            </section>
+
+            <!-- Sezione Firme -->
+            <section class="card" id="firme-section" style="display: none;">
+                <h2>✍️ Firme Digitali</h2>
+                
+                <!-- Firma Operatore -->
+                <div class="firma-container">
+                    <h3>Firma Operatore</h3>
+                    <div class="form-group">
+                        <label for="nome-operatore">Nome e Cognome Operatore *</label>
+                        <input type="text" id="nome-operatore" name="nomeOperatore" required>
+                    </div>
+                    <div class="signature-pad">
+                        <canvas id="canvas-operatore" width="400" height="200"></canvas>
+                        <div class="signature-controls">
+                            <button type="button" class="btn btn-secondary" onclick="clearSignature('operatore')">Cancella</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Firma Cliente -->
+                <div class="firma-container">
+                    <h3>Firma Cliente</h3>
+                    <div class="form-group">
+                        <label for="nome-firmatario-cliente">Nome e Cognome Firmatario *</label>
+                        <input type="text" id="nome-firmatario-cliente" name="nomeFirmatarioCliente" required>
+                    </div>
+                    <div class="signature-pad">
+                        <canvas id="canvas-cliente" width="400" height="200"></canvas>
+                        <div class="signature-controls">
+                            <button type="button" class="btn btn-secondary" onclick="clearSignature('cliente')">Cancella</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-success" onclick="salvaEInviaRapportino()">💾 Salva e Invia Rapportino</button>
+                    <button type="button" class="btn btn-primary" onclick="generaSoloRapportinoPDF()">📄 Solo PDF</button>
+                    <button type="button" class="btn btn-secondary" onclick="tornaIndietro()">← Torna Indietro</button>
+                </div>
+            </section>
+
+            <!-- Sezione Archivio -->
+            <section class="card" id="archivio-section" style="display: none;">
+                <h2>📁 Archivio</h2>
+                
+                <!-- Tab Navigation -->
+                <div class="archive-tabs">
+                    <button type="button" class="tab-btn active" onclick="mostraTabArchivio('rapportini')" id="tab-rapportini">📋 Rapportini</button>
+                    <button type="button" class="tab-btn" onclick="mostraTabArchivio('ricevute')" id="tab-ricevute">💰 Ricevute</button>
+                </div>
+                
+                <!-- Archivio Rapportini -->
+                <div id="archivio-rapportini" class="archive-content">
+                    <h3>📁 Archivio Rapportini</h3>
+                    
+                    <!-- Filtri e Ricerca -->
+                    <div class="archivio-controls">
+                    <div class="search-container">
+                        <input type="text" id="search-rapportini" placeholder="🔍 Cerca per cliente, operatore o numero..." onkeyup="filtraRapportini()">
+                    </div>
+                    <div class="filter-container">
+                        <select id="filter-mese" onchange="filtraRapportini()">
+                            <option value="">Tutti i mesi</option>
+                            <option value="01">Gennaio</option>
+                            <option value="02">Febbraio</option>
+                            <option value="03">Marzo</option>
+                            <option value="04">Aprile</option>
+                            <option value="05">Maggio</option>
+                            <option value="06">Giugno</option>
+                            <option value="07">Luglio</option>
+                            <option value="08">Agosto</option>
+                            <option value="09">Settembre</option>
+                            <option value="10">Ottobre</option>
+                            <option value="11">Novembre</option>
+                            <option value="12">Dicembre</option>
+                        </select>
+                        <select id="filter-anno" onchange="filtraRapportini()">
+                            <option value="">Tutti gli anni</option>
+                        </select>
+                    </div>
+                    <div class="export-container">
+                        <button type="button" class="btn btn-secondary" onclick="esportaArchivio()">📤 Esporta CSV</button>
+                        <button type="button" class="btn btn-danger" onclick="cancellaArchivio()">🗑️ Cancella Tutto</button>
+                    </div>
+                </div>
+
+                <!-- Statistiche -->
+                <div class="archivio-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="total-rapportini">0</span>
+                        <span class="stat-label">Rapportini Totali</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="rapportini-mese">0</span>
+                        <span class="stat-label">Questo Mese</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="rapportini-filtrati">0</span>
+                        <span class="stat-label">Visualizzati</span>
+                    </div>
+                </div>
+
+                    <!-- Lista Rapportini -->
+                    <div class="rapportini-lista" id="rapportini-lista">
+                        <div class="no-rapportini" id="no-rapportini">
+                            <p>📋 Nessun rapportino salvato</p>
+                            <p>I rapportini verranno automaticamente salvati nell'archivio dopo l'invio.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Archivio Ricevute -->
+                <div id="archivio-ricevute" class="archive-content" style="display: none;">
+                    <h3>💰 Archivio Ricevute</h3>
+                    
+                    <!-- Filtri e Ricerca Ricevute -->
+                    <div class="archivio-controls">
+                        <div class="search-container">
+                            <input type="text" id="search-ricevute" placeholder="🔍 Cerca per cliente, numero ricevuta..." onkeyup="filtraRicevute()">
+                        </div>
+                        <div class="filter-container">
+                            <select id="filter-mese-ricevute" onchange="filtraRicevute()">
+                                <option value="">Tutti i mesi</option>
+                                <option value="01">Gennaio</option>
+                                <option value="02">Febbraio</option>
+                                <option value="03">Marzo</option>
+                                <option value="04">Aprile</option>
+                                <option value="05">Maggio</option>
+                                <option value="06">Giugno</option>
+                                <option value="07">Luglio</option>
+                                <option value="08">Agosto</option>
+                                <option value="09">Settembre</option>
+                                <option value="10">Ottobre</option>
+                                <option value="11">Novembre</option>
+                                <option value="12">Dicembre</option>
+                            </select>
+                            <select id="filter-anno-ricevute" onchange="filtraRicevute()">
+                                <option value="">Tutti gli anni</option>
+                            </select>
+                        </div>
+                        <div class="export-container">
+                            <button type="button" class="btn btn-secondary" onclick="esportaArchivioRicevute()">📤 Esporta CSV</button>
+                            <button type="button" class="btn btn-danger" onclick="cancellaArchivioRicevute()">🗑️ Cancella Tutto</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Statistiche Ricevute -->
+                    <div class="archivio-stats">
+                        <div class="stat-item">
+                            <span class="stat-number" id="total-ricevute">0</span>
+                            <span class="stat-label">Ricevute Totali</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="ricevute-mese">0</span>
+                            <span class="stat-label">Questo Mese</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="ricevute-filtrate">0</span>
+                            <span class="stat-label">Visualizzate</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Lista Ricevute -->
+                    <div class="ricevute-lista" id="ricevute-lista">
+                        <div class="no-ricevute" id="no-ricevute">
+                            <p>💰 Nessuna ricevuta salvata</p>
+                            <p>Le ricevute verranno automaticamente salvate nell'archivio dopo l'invio.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sezione Ricevute -->
+            <section class="card" id="ricevute-section" style="display: none;">
+                <h2>💰 Generazione Ricevute</h2>
+                
+                <!-- Importazione Rapportino -->
+                <div class="form-section" style="background: #e8f5e8; border: 2px solid #4CAF50; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <h3 style="margin: 0; color: #2E7D32;">📋 Importazione Dati</h3>
+                            <p style="margin: 5px 0 0 0; color: #555; font-size: 14px;">Importa automaticamente tutti i dati dall'ultimo rapportino compilato</p>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="importaTuttiDatiRapportino()" style="background: #4CAF50; border-color: #4CAF50; font-weight: bold;">
+                            📥 Importa Dati da Rapportino
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Identificativi Intervento -->
+                <div class="form-section">
+                    <h3>🔢 Identificativi Intervento</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ricevuta-codice-intervento">Codice Intervento (da Rapportino)</label>
+                            <input type="text" id="ricevuta-codice-intervento" name="codiceIntervento" readonly placeholder="Verrà importato dal rapportino">
+                        </div>
+                        <div class="form-group">
+                            <label for="ricevuta-id">Numero Identificativo Ricevuta *</label>
+                            <input type="text" id="ricevuta-id" name="idIntervento" required readonly>
+                            <button type="button" class="btn btn-secondary" onclick="generaNumeroRicevuta()">🔄 Genera Nuovo ID</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dati Cliente -->
+                <div class="form-section">
+                    <h3>👤 Dati Cliente</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ricevuta-cliente-nome">Nome Cliente *</label>
+                            <input type="text" id="ricevuta-cliente-nome" name="nomeCliente" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="ricevuta-cliente-email">Email Cliente *</label>
+                            <input type="email" id="ricevuta-cliente-email" name="emailCliente" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dati Intervento -->
+                <div class="form-section">
+                    <h3>📋 Dati Intervento</h3>
+                    <form id="ricevuta-form">
+                        <div class="form-group">
+                            <label for="ricevuta-descrizione">Descrizione Intervento *</label>
+                            <textarea id="ricevuta-descrizione" name="descrizioneIntervento" rows="3" required placeholder="Descrivi dettagliatamente l'intervento effettuato..."></textarea>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Dati da Rapportino -->
+                <div class="form-section">
+                    <h3>⏱️ Dati Lavoro</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ricevuta-ore">Ore Lavorate</label>
+                            <input type="number" id="ricevuta-ore" name="oreLavorate" step="0.5" min="0" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="ricevuta-km">Chilometri Percorsi</label>
+                            <input type="number" id="ricevuta-km" name="chilometri" step="0.1" min="0" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="ricevuta-ore-viaggio">Ore di Viaggio</label>
+                            <input type="number" id="ricevuta-ore-viaggio" name="oreViaggio" step="0.5" min="0" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="costo-materiali">Costo Materiali Utilizzati (€)</label>
+                            <input type="number" id="costo-materiali" name="costoMateriali" step="0.01" min="0" placeholder="0.00">
+                            <small class="form-help">Inserisci il costo dei materiali utilizzati (accetta valori anche di 0€)</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pricelist -->
+                <div class="form-section">
+                    <h3>💶 Tariffe</h3>
+                    <div class="pricing-options">
+                        <div class="form-group">
+                            <label>
+                                <input type="radio" name="pricing-mode" value="pricelist" checked onchange="togglePricingMode()">
+                                Usa Pricelist Predefinita
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="radio" name="pricing-mode" value="manual" onchange="togglePricingMode()">
+                                Inserimento Manuale
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Pricelist Predefinita -->
+                    <div id="pricelist-section" class="pricing-section">
+                        <div class="form-group">
+                            <label for="pricelist-select">Seleziona Pricelist</label>
+                            <select id="pricelist-select" onchange="applicaPricelist()">
+                                <option value="">Seleziona una pricelist...</option>
+                                <option value="standard">Standard - €25/h, €0.50/km, €20/h viaggio</option>
+                                <option value="premium">Premium - €35/h, €0.60/km, €25/h viaggio</option>
+                                <option value="urgenza">Urgenza - €45/h, €0.70/km, €30/h viaggio</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-secondary" onclick="mostraGestionePricelist()">⚙️ Gestisci Pricelist</button>
+                    </div>
+
+                    <!-- Inserimento Manuale -->
+                    <div id="manual-pricing-section" class="pricing-section" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="costo-orario">Costo Orario (€/h)</label>
+                                <input type="number" id="costo-orario" name="costoOrario" step="0.01" min="0" placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label for="costo-chilometro">Costo al Chilometro (€/km)</label>
+                                <input type="number" id="costo-chilometro" name="costoChilometro" step="0.01" min="0" placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label for="costo-viaggio">Costo Viaggio (€/h)</label>
+                                <input type="number" id="costo-viaggio" name="costoViaggio" step="0.01" min="0" placeholder="0.00">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calcoli e Totali -->
+                <div class="form-section">
+                    <h3>🧮 Calcoli</h3>
+                    <div class="calculation-summary">
+                        <div class="calc-row">
+                            <span>Costo Lavoro:</span>
+                            <span id="calc-lavoro">€0.00</span>
+                        </div>
+                        <div class="calc-row">
+                            <span>Costo Chilometraggio:</span>
+                            <span id="calc-chilometraggio">€0.00</span>
+                        </div>
+                        <div class="calc-row">
+                            <span>Costo Viaggio:</span>
+                            <span id="calc-viaggio">€0.00</span>
+                        </div>
+                        <div class="calc-row">
+                            <span>Costo Materiali:</span>
+                            <span id="calc-materiali">€0.00</span>
+                        </div>
+                        <div class="calc-row total">
+                            <span><strong>Totale:</strong></span>
+                            <span id="calc-totale"><strong>€0.00</strong></span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="calcolaImporti()">🧮 Calcola Importi</button>
+                </div>
+
+
+
+                <!-- Firma Cliente -->
+                <div class="firma-container">
+                    <h3>Firma Cliente</h3>
+                    <div class="form-group">
+                        <label for="nome-firmatario-ricevuta">Nome e Cognome Firmatario *</label>
+                        <input type="text" id="nome-firmatario-ricevuta" name="nomeFirmatarioRicevuta" required>
+                    </div>
+                    <div class="signature-pad">
+                        <canvas id="ricevuta-signature-canvas" width="400" height="200"></canvas>
+                        <div class="signature-controls">
+                            <button type="button" class="btn btn-secondary" onclick="pulisciFirmaRicevuta()">Cancella</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-success" onclick="salvaEInviaRicevutaConFirma()">💾 Salva e Invia Ricevuta</button>
+                    <button type="button" class="btn btn-primary" onclick="generaSoloRicevutaPDF()">📄 Solo PDF</button>
+                    <button type="button" class="btn btn-secondary" onclick="mostraSezione('home-section')">← Torna Indietro</button>
+                </div>
+            </section>
+
+            <!-- Modal Dettagli Rapportino -->
+            <div id="modal-dettagli" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="modal-title">Dettagli Rapportino</h3>
+                        <span class="modal-close" onclick="chiudiModal()">&times;</span>
+                    </div>
+                    <div class="modal-body" id="modal-body">
+                        <!-- Contenuto dinamico -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" onclick="rigeneraRapportinoPDF()">📄 Rigenera PDF</button>
+                        <button type="button" class="btn btn-secondary" onclick="chiudiModal()">Chiudi</button>
+                        <button type="button" class="btn btn-danger" onclick="eliminaRapportino()">🗑️ Elimina</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Gestione Pricelist -->
+            <div id="modal-pricelist" class="modal" style="display: none;">
+                <div class="modal-content modal-large">
+                    <div class="modal-header">
+                        <h3>⚙️ Gestione Pricelist</h3>
+                        <span class="modal-close" onclick="chiudiModalPricelist()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div class="pricelist-management">
+                            <!-- Lista Pricelist Esistenti -->
+                            <div class="pricelist-section">
+                                <h4>📋 Pricelist Esistenti</h4>
+                                <div id="pricelist-lista" class="pricelist-lista">
+                                    <!-- Contenuto dinamico -->
+                                </div>
+                            </div>
+                            
+                            <!-- Form Nuova Pricelist -->
+                            <div class="pricelist-section">
+                                <h4 id="form-title">➕ Aggiungi Nuova Pricelist</h4>
+                                <form id="form-pricelist" class="pricelist-form">
+                                    <div class="form-group">
+                                        <label for="pricelist-nome">Nome Pricelist</label>
+                                        <input type="text" id="pricelist-nome" required placeholder="Es: Standard, Premium, Urgenza...">
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="pricelist-orario">Costo Orario (€)</label>
+                                            <input type="number" id="pricelist-orario" step="0.01" min="0" required placeholder="25.00">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="pricelist-chilometro">Costo per Km (€)</label>
+                                            <input type="number" id="pricelist-chilometro" step="0.01" min="0" required placeholder="0.50">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="pricelist-viaggio">Costo Viaggio (€)</label>
+                                            <input type="number" id="pricelist-viaggio" step="0.01" min="0" required placeholder="20.00">
+                                        </div>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="submit" class="btn btn-primary" id="btn-salva-pricelist">💾 Salva Pricelist</button>
+                                        <button type="button" class="btn btn-secondary" onclick="resetFormPricelist()">🔄 Reset</button>
+                                        <button type="button" class="btn btn-secondary" id="btn-annulla-modifica" onclick="annullaModificaPricelist()" style="display: none;">❌ Annulla Modifica</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="chiudiModalPricelist()">Chiudi</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading e Messaggi -->
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Generazione e invio rapportino in corso...</p>
+            </div>
+
+            <div id="message" class="message" style="display: none;"></div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
